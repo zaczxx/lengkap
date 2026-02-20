@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GOGO Short Drama - Nonton Melolo, DramaBox, dll</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #111; color: #fff; margin: 0; padding: 0; }
+    header { background: #222; padding: 15px; text-align: center; }
+    h1 { margin: 0; font-size: 1.8em; }
+    .tabs { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 15px 0; }
+    .tab { background: #333; padding: 10px 18px; border-radius: 20px; cursor: pointer; transition: 0.3s; }
+    .tab.active { background: #e91e63; }
+    #search { width: 80%; max-width: 500px; padding: 12px; margin: 10px auto; display: block; border: none; border-radius: 25px; font-size: 1em; }
+    #content { padding: 15px; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
+    .card { background: #222; border-radius: 10px; overflow: hidden; cursor: pointer; text-align: center; }
+    .card img { width: 100%; height: 220px; object-fit: cover; }
+    .card p { margin: 8px; font-size: 0.9em; }
+    .card .views { color: #aaa; font-size: 0.8em; }
+    #detail { display: none; padding: 20px; background: #000; min-height: 100vh; }
+    #detail h2 { margin-top: 0; }
+    #episode-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin: 20px 0; }
+    .ep-btn { background: #444; padding: 12px; border-radius: 8px; text-align: center; cursor: pointer; }
+    .ep-btn.active { background: #e91e63; }
+    #player { width: 100%; max-width: 800px; margin: 20px auto; height: 450px; }
+    #back { background: #e91e63; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; margin-bottom: 15px; }
+    #loading { text-align: center; padding: 20px; display: none; }
+    @media (max-width: 600px) { #content { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); } #player { height: 300px; } }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>GOGO Short Drama</h1>
+</header>
+
+<div class="tabs">
+  <div class="tab active" data-source="melolo">Melolo</div>
+  <div class="tab" data-source="dramabox">DramaBox</div>
+  <div class="tab" data-source="freereels">FreeReels</div>
+  <div class="tab" data-source="reelshort">Reelshort</div>
+</div>
+
+<input type="text" id="search" placeholder="Cari drama... (contoh: cinta, love, balas dendam)" />
+
+<div id="content"></div>
+<div id="loading">Memuat...</div>
+
+<div id="detail">
+  <button id="back">← Kembali</button>
+  <h2 id="drama-title"></h2>
+  <p id="drama-desc"></p>
+  <div id="episode-list"></div>
+  <video id="player" controls></video>
+</div>
+
+<script>
+  let currentSource = 'melolo';
+  let currentPage = 1;
+  let currentSearch = '';
+  let currentDramaId = '';
+
+  const tabs = document.querySelectorAll('.tab');
+  const searchInput = document.getElementById('search');
+  const content = document.getElementById('content');
+  const loading = document.getElementById('loading');
+  const detail = document.getElementById('detail');
+  const backBtn = document.getElementById('back');
+  const player = document.getElementById('player');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentSource = tab.dataset.source;
+      currentPage = 1;
+      loadPopular();
+    });
+  });
+
+  searchInput.addEventListener('input', debounce(() => {
+    currentSearch = searchInput.value.trim();
+    currentPage = 1;
+    if (currentSearch.length > 1) loadSearch();
+    else loadPopular();
+  }, 500));
+
+  backBtn.addEventListener('click', () => {
+    detail.style.display = 'none';
+    content.style.display = 'grid';
+    player.pause();
+    player.src = '';
+  });
+
+  async function loadPopular() {
+    loading.style.display = 'block';
+    content.innerHTML = '';
+    let url = '';
+    if (currentSource === 'melolo') url = `https://api.sonzaix.indevs.in/melolo/populer?page=${currentPage}`;
+    else if (currentSource === 'dramabox') url = `https://api.sonzaix.indevs.in/dramabox/populer?page=${currentPage}`;
+    else if (currentSource === 'freereels') url = `https://api.sonzaix.indevs.in/freereels/populer?page=${currentPage}`;
+    else if (currentSource === 'reelshort') url = `https://api.sonzaix.indevs.in/reelshort/populer?page=${currentPage}`;
+
+    try {
+      const res = await fetch(url);
+      const json = await res.json();
+      if (json.message !== 'success') throw new Error('API error');
+      renderList(json.data || []);
+    } catch (e) {
+      content.innerHTML = `<p style="text-align:center;color:red;">Gagal load: ${e.message}</p>`;
+    } finally {
+      loading.style.display = 'none';
+    }
+  }
+
+  async function loadSearch() {
+    loading.style.display = 'block';
+    content.innerHTML = '';
+    let url = '';
+    if (currentSource === 'melolo') url = `https://api.sonzaix.indevs.in/melolo/search?q=\( {encodeURIComponent(currentSearch)}&result=10&page= \){currentPage}`;
+    else if (currentSource === 'dramabox') url = `https://api.sonzaix.indevs.in/dramabox/search?q=\( {encodeURIComponent(currentSearch)}&result=10&page= \){currentPage}`;
+    else if (currentSource === 'freereels') url = `https://api.sonzaix.indevs.in/freereels/search?q=\( {encodeURIComponent(currentSearch)}&page= \){currentPage}`;
+    else if (currentSource === 'reelshort') url = `https://api.sonzaix.indevs.in/reelshort/search?query=\( {encodeURIComponent(currentSearch)}&page= \){currentPage}`;
+
+    try {
+      const res = await fetch(url);
+      const json = await res.json();
+      if (json.message !== 'success') throw new Error('API error');
+      renderList(json.data || []);
+    } catch (e) {
+      content.innerHTML = `<p style="text-align:center;color:red;">Gagal cari: ${e.message}</p>`;
+    } finally {
+      loading.style.display = 'none';
+    }
+  }
+
+  function renderList(dataArray) {
+    let books = [];
+    dataArray.forEach(item => {
+      if (item.books && Array.isArray(item.books)) books.push(...item.books);
+    });
+
+    if (books.length === 0) {
+      content.innerHTML = '<p style="text-align:center;">Tidak ada hasil</p>';
+      return;
+    }
+
+    books.forEach(book => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      const thumb = book.thumb_url || 'https://via.placeholder.com/150?text=No+Poster';
+      card.innerHTML = `
+        <img src="\( {thumb}" alt=" \){book.drama_name || 'Drama'}" onerror="this.src='https://via.placeholder.com/150?text=Error'">
+        <p>${book.drama_name || 'Judul Tidak Tersedia'}</p>
+        <p class="views">${book.watch_value || 'N/A'} views • ${book.episode_count || '?'} eps</p>
+      `;
+      card.onclick = () => loadDetail(book.drama_id, book.drama_name);
+      content.appendChild(card);
+    });
+  }
+
+  async function loadDetail(id, title) {
+    currentDramaId = id;
+    loading.style.display = 'block';
+    detail.style.display = 'none';
+
+    let url = '';
+    if (currentSource === 'melolo') url = `https://api.sonzaix.indevs.in/melolo/detail/${id}`;
+    else if (currentSource === 'dramabox') url = `https://api.sonzaix.indevs.in/dramabox/detail/${id}`;
+    else if (currentSource === 'freereels') url = `https://api.sonzaix.indevs.in/freereels/detail?dramaId=${id}`;
+    else if (currentSource === 'reelshort') url = `https://api.sonzaix.indevs.in/reelshort/detail?bookId=${id}`;
+
+    try {
+      const res = await fetch(url);
+      const json = await res.json();
+      if (json.message !== 'success') throw new Error('Detail error');
+
+      let detailData = json.data || json;
+      if (detailData.books && detailData.books[0]) detailData = detailData.books[0];
+
+      document.getElementById('drama-title').textContent = title || detailData.drama_name || 'Judul Drama';
+      document.getElementById('drama-desc').textContent = detailData.description || 'Sinopsis tidak tersedia.';
+
+      const epList = document.getElementById('episode-list');
+      epList.innerHTML = '';
+
+      let episodes = [];
+
+      // Melolo: video_list array dengan episode & video_id
+      if (currentSource === 'melolo' && json.video_list && Array.isArray(json.video_list)) {
+        episodes = json.video_list;
+        episodes.forEach(ep => {
+          const btn = document.createElement('div');
+          btn.className = 'ep-btn';
+          btn.textContent = `Ep ${ep.episode}`;
+          btn.onclick = () => playEpisode(ep.video_id);
+          epList.appendChild(btn);
+        });
+      } 
+      // DramaBox: chapterList dengan chapterIndex
+      else if (currentSource === 'dramabox' && detailData.chapterList && Array.isArray(detailData.chapterList)) {
+        episodes = detailData.chapterList;
+        episodes.forEach(ch => {
+          const btn = document.createElement('div');
+          btn.className = 'ep-btn';
+          btn.textContent = `Ep ${ch.chapterIndex + 1}`;
+          btn.onclick = () => playEpisode(ch.chapterIndex);
+          epList.appendChild(btn);
+        });
+      } 
+      // Fallback untuk sumber lain atau jika gak ada list
+      else {
+        const epCount = parseInt(detailData.episode_count || 1);
+        for (let i = 1; i <= epCount; i++) {
+          const btn = document.createElement('div');
+          btn.className = 'ep-btn';
+          btn.textContent = `Ep ${i}`;
+          btn.onclick = () => playEpisode(i - 1);  // 0-based index
+          epList.appendChild(btn);
+        }
+      }
+
+      content.style.display = 'none';
+      detail.style.display = 'block';
+    } catch (e) {
+      alert('Gagal load detail: ' + e.message);
+      console.error('Detail error:', e);
+    } finally {
+      loading.style.display = 'none';
+    }
+  }
+
+  async function playEpisode(episodeParam) {
+    let url = '';
+    if (currentSource === 'melolo') {
+      url = `https://api.sonzaix.indevs.in/melolo/stream/${episodeParam}`;  // episodeParam = video_id
+    } else if (currentSource === 'dramabox') {
+      url = `https://api.sonzaix.indevs.in/dramabox/stream?dramaId=\( {currentDramaId}&episodeIndex= \){episodeParam}`;
+    } else if (currentSource === 'freereels') {
+      url = `https://api.sonzaix.indevs.in/freereels/stream?dramaId=\( {currentDramaId}&episode= \){episodeParam + 1}`;  // asumsi 1-based
+    } else if (currentSource === 'reelshort') {
+      url = `https://api.sonzaix.indevs.in/reelshort/stream?bookId=\( {currentDramaId}&episodeNumber= \){episodeParam + 1}`;
+    }
+
+    try {
+      const res = await fetch(url);
+      const json = await res.json();
+      if (json.message !== 'success') throw new Error('Stream error');
+
+      let videoUrl = json.data?.qualities?.[0]?.url || json.data?.video_url || json.video_url || json.url;
+      if (!videoUrl) throw new Error('No playable URL found');
+
+      player.src = videoUrl;
+      player.load();
+      player.play().catch(err => {
+        console.error('Autoplay blocked or error:', err);
+        alert('Video ready, tapi autoplay diblok browser. Klik play manual.');
+      });
+    } catch (e) {
+      alert('Gagal play episode: ' + e.message + '\nCek console (F12) > Network untuk response API.');
+      console.error('Stream error URL:', url, e);
+    }
+  }
+
+  function debounce(func, wait) {
+    let timeout;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), wait);
+    };
+  }
+
+  // Mulai
+  loadPopular();
+</script>
+</body>
+</html>
