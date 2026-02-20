@@ -354,7 +354,7 @@
       width: 100%;
       aspect-ratio: 9/16;
       background: #000;
-      max-height: 90vh;
+      max-height: 110vh;
     }
 
     .player-container video {
@@ -1397,25 +1397,35 @@
           videoUrl = preferred.url;
           state.selectedQuality = preferred.label;
         }
-      } else if (source === 'freereels') {
+            } else if (source === 'freereels') {
+        const P_URL = "https://zzz.zulnad.workers.dev/?url=";
+        
         // FreeReels: { video_url, m3u8_url, h264_m3u8, h265_m3u8, subtitles }
-        if (streamData.h264_m3u8) qualities.push({ label: 'H264', url: streamData.h264_m3u8 });
-        if (streamData.h265_m3u8) qualities.push({ label: 'H265', url: streamData.h265_m3u8 });
+        // Kita bungkus semua URL dengan proxy + encodeURIComponent
+        if (streamData.h264_m3u8) qualities.push({ label: 'H264', url: P_URL + encodeURIComponent(streamData.h264_m3u8) });
+        if (streamData.h265_m3u8) qualities.push({ label: 'H265', url: P_URL + encodeURIComponent(streamData.h265_m3u8) });
+        
         // Fallback ke video_url jika tidak ada h264/h265
-        if (!qualities.length && streamData.video_url) qualities.push({ label: 'Default', url: streamData.video_url });
+        if (!qualities.length && streamData.video_url) {
+          qualities.push({ label: 'Default', url: P_URL + encodeURIComponent(streamData.video_url) });
+        }
+        
         // Pilih H264 sebagai default (lebih kompatibel)
-        const preferred = qualities.find(q => q.label === 'H264') || qualities[0];
+        const preferred = qualities.find(q => q.label === 'H265') || qualities[0];
         if (preferred) {
           videoUrl = preferred.url;
           state.selectedQuality = preferred.label;
         } else {
-          videoUrl = streamData.video_url || streamData.m3u8_url || '';
+          let rawUrl = streamData.video_url || streamData.m3u8_url || '';
+          videoUrl = rawUrl ? P_URL + encodeURIComponent(rawUrl) : '';
           state.selectedQuality = 'auto';
         }
+        
         // Muat subtitle jika tersedia
         if (streamData.subtitles && streamData.subtitles.length) {
           state.currentSubtitles = streamData.subtitles;
         }
+
       } else if (source === 'drakor') {
         // Drakor data_stream
         const streams = streamData.data_stream || data?.data_stream || [];
