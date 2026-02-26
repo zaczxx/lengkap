@@ -830,7 +830,7 @@
   // ============================================
   // APP STATE
   // ============================================
-  const API = "https://drama.sonzaix.indevs.in";
+  const API = "https://api.sonzaix.indevs.in";
   const SOURCES = ['melolo', 'dramabox', 'reelshort', 'freereels', 'drakor'];
 
   let state = {
@@ -1750,40 +1750,6 @@
       history.back();
     }
   };
-  
-
-
-(function() {
-    const modalHTML = `
-    <div id="updateModal" style="display:flex; position:fixed; z-index:999999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(2px); align-items:center; justify-content:center; font-family:sans-serif;">
-        <div style="background:#1a1a1a; color:#fff; padding:25px; border-radius:15px; width:85%; max-width:320px; box-shadow:0 10px 40px rgba(0,0,0,0.8); border: 1px solid #333; text-align:center; animation: fadeIn 0.3s ease;">
-            <div style="font-size:35px; margin-bottom:10px;">📢</div>
-            <h2 style="margin:0; font-size:1.3rem; color:#fff; letter-spacing:0.5px;">Info Update</h2>
-            <div style="height:1px; background:#333; margin:15px 0;"></div>
-            <p style="color:#aaa; margin:0 0 10px 0; font-size:0.85rem; font-weight:bold;">Update 23 FEBRUARI 2026</p>
-            <ul style="text-align:left; display:inline-block; margin:0 0 20px 0; padding-left:15px; color:#ddd; font-size:0.9rem; line-height:1.4;">
-                <li>Perbaikan Reelshort Error Saat Stream</li>
-                <li>Kalo ada Error lagi kabarin cowokmu  biar di betuli dia</li>
-            </ul>
-            <button onclick="document.getElementById('updateModal').remove()" style="background:#007bff; color:white; border:none; padding:12px; border-radius:8px; cursor:pointer; width:100%; font-weight:bold; font-size:14px; box-shadow: 0 4px 10px rgba(0,123,255,0.3);">
-                Lanjut Ke Web
-            </button>
-        </div>
-    </div>
-    <style>
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-    </style>`;
-
-    // Munculkan pas halaman loading selesai
-    if (document.readyState === 'complete') {
-        document.body.insertAdjacentHTML('beforeend', modalHTML);
-    } else {
-        window.addEventListener('load', function() {
-            document.body.insertAdjacentHTML('beforeend', modalHTML);
-        });
-    }
-})();
-  
 </script>
 
 </body>
