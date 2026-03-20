@@ -545,18 +545,34 @@
     }
 
     .episode-list {
-      display: flex; flex-direction: column; gap: 6px;
-    }
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
 
-    .episode-item {
-      display: flex; align-items: center; gap: 12px;
-      padding: 12px 14px;
-      border-radius: 12px;
-      background: rgba(30,30,30,0.7);
-      border: 1px solid var(--border-subtle);
-      cursor: pointer;
-      transition: all 0.2s;
-    }
+.episode-list::-webkit-scrollbar {
+  height: 4px;
+}
+
+.episode-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(30,30,30,0.7);
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 13px;
+  text-align: center;
+}
+
+.ep-label {
+  font-weight: 600;
+}
 
     .episode-item:hover {
       background: rgba(255,41,101,0.08);
@@ -1248,10 +1264,10 @@
         }));
       } else if (source === 'freereels') {
         episodes = (detail.episode_list || []).map((ep, i) => ({
-          label: ep.name || 'Episode ' + (i + 1),
-          episode_id: ep.episode_id,
-          index: i
-        }));
+  label: 'Episode ' + (i + 1),
+  episode_id: ep.episode_id,
+  index: i
+}));
       } else if (source === 'drakor') {
         episodes = (detail.data_episode || []).map((ep, i) => ({
           label: 'Episode ' + (i + 1),
