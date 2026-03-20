@@ -26,7 +26,6 @@
       --dramabox: #FF1744;
       --reelshort: #7C4DFF;
       --freereels: #F43F5E;
-      --drakor: #14b8a6;
       --shadow-card: 0 6px 24px rgba(0,0,0,0.4);
       --radius-card: 18px;
       --radius-btn: 12px;
@@ -336,8 +335,7 @@
     .badge-dramabox { background: rgba(255,23,68,0.18); color: var(--dramabox); border: 1px solid rgba(255,23,68,0.4); }
     .badge-reelshort { background: rgba(124,77,255,0.18); color: var(--reelshort); border: 1px solid rgba(124,77,255,0.4); }
     .badge-freereels { background: rgba(244,63,94,0.18); color: var(--freereels); border: 1px solid rgba(244,63,94,0.4); }
-    .badge-drakor { background: rgba(20,184,166,0.18); color: var(--drakor); border: 1px solid rgba(20,184,166,0.4); }
-
+   
     /* ===== DETAIL VIEW ===== */
     .detail-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -727,8 +725,7 @@
       <button class="filter-option-btn" data-source="dramabox" style="--opt-color:var(--dramabox);--opt-bg:rgba(255,23,68,0.15)" onclick="selectFilter('dramabox')">Dramabox</button>
       <button class="filter-option-btn" data-source="reelshort" style="--opt-color:var(--reelshort);--opt-bg:rgba(124,77,255,0.15)" onclick="selectFilter('reelshort')">ReelShort</button>
       <button class="filter-option-btn" data-source="freereels" style="--opt-color:var(--freereels);--opt-bg:rgba(244,63,94,0.15)" onclick="selectFilter('freereels')">FreeReels</button>
-      <button class="filter-option-btn" data-source="drakor" style="--opt-color:var(--drakor);--opt-bg:rgba(20,184,166,0.15)" onclick="selectFilter('drakor')">Drakor</button>
-    </div>
+  </div>
     <button class="filter-dialog-close" onclick="closeFilterDialog()">Tutup</button>
   </div>
 </div>
@@ -738,7 +735,6 @@
   <button class="tab-btn active" data-tab="home" onclick="switchTab('home')">Home</button>
   <button class="tab-btn" data-tab="new" onclick="switchTab('new')">Terbaru</button>
   <button class="tab-btn" data-tab="populer" onclick="switchTab('populer')">Populer</button>
-  <button class="tab-btn" data-tab="search" onclick="switchTab('search')">Pencarian</button>
 </div>
 
 <!-- ===== MAIN CONTENT ===== -->
@@ -768,10 +764,6 @@
   <button class="bottom-nav-item" data-tab="populer" onclick="switchTab('populer')">
     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
     <span>Populer</span>
-  </button>
-  <button class="bottom-nav-item" data-tab="search" onclick="switchTab('search'); document.getElementById('searchInput').focus();">
-    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zM9.5 14C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-    <span>Cari</span>
   </button>
   <button class="bottom-nav-item" data-tab="library" onclick="switchTab('library')">
     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
@@ -831,7 +823,7 @@
   // APP STATE
   // ============================================
   const API = "https://api.sonzaix.indevs.in";
-  const SOURCES = ['melolo', 'dramabox', 'reelshort', 'freereels', 'drakor'];
+  const SOURCES = ['melolo', 'dramabox', 'reelshort', 'freereels'];
 
   let state = {
     currentTab: 'home',
@@ -899,25 +891,13 @@
       parseStream: (data) => data?.data || {},
       getEpisodeStreamId: (ep, idx) => idx + 1,
     },
-    drakor: {
-      label: 'Drakor', color: '#14b8a6',
-      endpoints: { home: null, new: null, populer: null, search: '/drama/search' },
-      detailUrl: (id) => `/drama/info?id=${id}`,
-      streamUrl: (sid) => `/drama/stream?id=${sid}`,
-      parseList: (data) => (data?.data || []).map(item => ({
-        drama_name: item.title || '',
-        drama_id: item.id || '',
-        description: '',
-        episode_count: '',
-        watch_value: item.hits || '',
-        thumb_url: item.image || '',
-        tags: [],
-        source: 'drakor'
-      })),
-      parseDetail: (data) => data,
-      parseStream: (data) => data,
-      getEpisodeStreamId: (ep) => ep.streaming_id || ep.id,
-    }
+    netshort: {
+  home: '/netshort/home?page=',
+  populer: '/netshort/populer?page=',
+  new: '/netshort/new',
+  detail: '/netshort/detail?dramaId=',
+  stream: '/netshort/stream?dramaId='
+},
   };
 
   // ============================================
@@ -933,11 +913,31 @@
   }
 
   async function apiFetch(path) {
-    const sep = path.includes('?') ? '&' : '?';
-    const resp = await fetch(API + path + sep + '_t=' + Date.now());
-    if (!resp.ok) throw new Error('API error ' + resp.status);
-    return resp.json();
+
+  while (true) {
+    try {
+
+      const resp = await fetch(API + path);
+
+      if (!resp.ok) {
+        throw new Error("api error");
+      }
+
+      const data = await resp.json();
+      return data;
+
+    } catch (err) {
+
+      console.log("retry fetch stream");
+
+      await new Promise(function(resolve){
+        setTimeout(resolve, 2000);
+      });
+
+    }
   }
+
+}
 
   function showLoader() {
     const loader = $('gridLoader');
@@ -1100,6 +1100,14 @@
   // ============================================
   // TAB / SOURCE SWITCHING
   // ============================================
+  
+  function doSearch(){
+  const q = $('searchInput').value.trim();
+  if(!q) return;
+  state.searchQuery = q;
+  switchTab('search');
+}
+
   function switchTab(tab) {
     state.currentTab = tab;
     state.page = {};
@@ -1157,13 +1165,6 @@
     document.querySelectorAll('.filter-option-btn').forEach(btn => {
       btn.classList.toggle('selected', btn.dataset.source === state.currentSource);
     });
-  }
-
-  function doSearch() {
-    const q = $('searchInput').value.trim();
-    if (!q) return;
-    state.searchQuery = q;
-    switchTab('search');
   }
 
   function loadMore() {
@@ -1311,9 +1312,6 @@
       el.classList.toggle('active', parseInt(el.dataset.index) === index);
     });
 
-    // Scroll to active episode
-    const activeEl = document.querySelector('.episode-item.active');
-
     showPlayerLoading(true);
     stopPlayer();
 
@@ -1454,7 +1452,7 @@
           if (s['720p']) { qualities.push({ label: '720p', url: s['720p'] }); videoUrl = s['720p']; }
           if (s['480p']) { qualities.push({ label: '480p', url: s['480p'] }); if (!videoUrl) videoUrl = s['480p']; }
           if (s['360p']) { qualities.push({ label: '360p', url: s['360p'] }); if (!videoUrl) videoUrl = s['360p']; }
-          state.selectedQuality = qualities.length ? qualities[0].label : 'auto';
+          state.selectedQuality = qualities[0]?.label || 'auto';
         }
       }
 
@@ -1503,11 +1501,16 @@
           showPlayerLoading(false);
         });
         hls.on(Hls.Events.ERROR, (_, data) => {
-          if (data.fatal) {
-            console.error('HLS fatal error:', data);
-            showPlayerLoading(false);
-          }
-        });
+  if (data.fatal) {
+
+    console.log("reload stream");
+
+    setTimeout(function(){
+      playEpisode(state.currentEpIndex, state.currentSource);
+    }, 2000);
+
+  }
+});
         state.hlsInstance = hls;
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = url;
